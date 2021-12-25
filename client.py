@@ -34,6 +34,7 @@ def rec_offer():
     # Receiving a udp packet
 
     sock_UDP = socket.socket(socket.AF_INET,socket.SOCK_DGRAM) #SOCK_DGRAM is for UDP
+    sock_UDP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     sock_UDP.bind((ip, UDP_port))
 
     data = sock_UDP.recvfrom(1024) # buffer size is 1024 bytes
@@ -53,6 +54,7 @@ def rec_offer():
 
 def connec_to_server(port, tip):
     sock_TCP = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #SOCK_STREAM is for TCP
+    sock_TCP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     server_address = (tip, port)
     print( f'{bcolors.HEADER}connecting to %s port %s \n' % server_address)
     ret = sock_TCP.connect(server_address)

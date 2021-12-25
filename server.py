@@ -290,8 +290,9 @@ def send_offers_for_10_sec():
     # UDP_IP = ip
     # UDP_PORT = port
 
-    udp_socket_out = socket.socket(socket.AF_INET, # Internet
-                        socket.SOCK_DGRAM) # UDP
+    udp_socket_out = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+    udp_socket_out.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
     for i in range(0,length_of_spam_phase):
         for addr in offer_list:
             datagram = struct.pack('!IbH',0xfeedbeef, 0x2, port)
