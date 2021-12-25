@@ -19,27 +19,27 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-ip = scapy.get_if_addr('eth1')
+#ip = scapy.get_if_addr('eth1')
+ip = 'localhost'
 UDP_port = 13117
-COOKIE = 0xfeedbeef
+COOKIE = 0xabcddcba
 MESSAGE_TYPE = 0x2
 STRUCT_FORMAT = '!IbH'
 CTRL_C = '\x03'
-TEAM_NAME = 'Gal Dahan'
+TEAM_NAME = 'Rabbin Hood'
 
 def rec_offer():
     print(f"{bcolors.HEADER}Client started, listening for offer requests... \n")
 
-    # here we will do the recieving of udp
+    # Receiving a udp packet
 
-    sock_UDP = socket.socket(socket.AF_INET, # Internet
-                        socket.SOCK_DGRAM) # UDP
+    sock_UDP = socket.socket(socket.AF_INET,socket.SOCK_DGRAM) #SOCK_DGRAM is for UDP
     sock_UDP.bind((ip, UDP_port))
 
     data = sock_UDP.recvfrom(1024) # buffer size is 1024 bytes
     magic,mType,targetPort = struct.unpack(STRUCT_FORMAT,data[0])
     udp_ip = data[1][0]
-    print(f"{bcolors.OKGREEN}Received offer from {udp_ip} attempting to connect  \n")
+    print(f"{bcolors.OKGREEN}Received offer from {udp_ip} attempting to connect...  \n")
 
     if magic == COOKIE and mType == MESSAGE_TYPE:
         sock_UDP.close()
@@ -47,12 +47,12 @@ def rec_offer():
             connec_to_server(targetPort,udp_ip)
         except ConnectionRefusedError:
             rec_offer()
-# end of UPD section @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ goku
+# end of UPD section
 
 # Connect the socket to the port where the server is listening
 
 def connec_to_server(port, tip):
-    sock_TCP = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock_TCP = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #SOCK_STREAM is for TCP
     server_address = (tip, port)
     print( f'{bcolors.HEADER}connecting to %s port %s \n' % server_address)
     ret = sock_TCP.connect(server_address)
@@ -75,9 +75,11 @@ def connec_to_server(port, tip):
         sock_TCP.close()
         print(f'{bcolors.OKBLUE}Server  disconnected, listening for offer requests...')
         rec_offer()
+
+
 def game_mode(socket):
 
-    socket.sendall(bytes(TEAM_NAME,'UTF-8'))
+    socket.sendall(bytes(TEAM_NAME,'ascii'))
     # sendThread = threading.Thread(target = rec, args =(socket))
     # receiveThread = threading.Thread(target = send, args =(socket))
     read = False
@@ -87,7 +89,8 @@ def game_mode(socket):
             startMsg = socket.recv(1024).decode('ascii')
             print(f'{bcolors.OKGREEN} %s here' % startMsg)
             read = True
-        if read: break
+        if read :
+            break
         time.sleep(0.5)
 
     readers = [socket]
@@ -115,11 +118,12 @@ def getch():
     fd = sys.stdin.fileno()
     # old = termios.tcgetattr(fd)
     old = termios.tcgetattr(sys.stdin)
-    if(isData()):
+    if isData():
         try:
             tty.setraw(fd)
             data = sys.stdin.read(1)
-            if data == CTRL_C : sys.exit(0)
+            if data == CTRL_C:
+                sys.exit(0)
             return data
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old)

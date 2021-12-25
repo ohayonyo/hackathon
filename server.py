@@ -31,13 +31,15 @@ length_of_spam_phase = 10
 length_of_game_phase = 10
 
 # Connection Data
-# host = '172.1.0.123'
-host = scapy.get_if_addr('eth1')
-port = 2117
+host = 'localhost'
+# host = scapy.get_if_addr('eth1')
+port = 2123
 port_to_send_udp = 13117
 
 # starting server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
 # server.bind((host, port))
 server.bind((host, port))
 port = server.getsockname()[1]
@@ -85,8 +87,7 @@ def handle(client):
                 if chosen_group == 1:
                     group1.append(team_name)
                 else:
-                    if chosen_group == 2:
-                        group2.append(team_name)
+                    group2.append(team_name)
 
                 # print("Team Name is {}".format(team_name))
                 readers.remove(c)
@@ -97,7 +98,7 @@ def handle(client):
                 # print('{} Something is wrong with the given team name'.format(team_name).encode('ascii'))
                 return
 
-    while(udp_spam_time_lock.locked() == False):
+    while not udp_spam_time_lock.locked():
         time.sleep(0.1)
 
 
@@ -126,7 +127,7 @@ def handle(client):
             try:
                 message = c.recv(16)
                 if(message == b''):
-                    raise RuntimeError("Hi tommer!")
+                    raise RuntimeError("Runtime Error !\nEmpty message")
                 # print(f'{bcolors.OKBLUE}received "%s" \n' % message)
                 # add 1 to the score of the scoring team
                 x = clients[c]
@@ -209,7 +210,7 @@ def mainLooper():
         # logging.info(f'Came back from recieve_tcp_connections func')
 
         # print("Ten seconds finished")
-        while game_time_lock.locked() == False:
+        while not game_time_lock.locked():
             time.sleep(0.1)
 
         # close all client threads and remove them
@@ -235,10 +236,9 @@ def mainLooper():
             group = clients[c][2]
             score_by_teamname[team_name] = score
             if group == 1:
-                group1_score = group1_score + score
+                group1_score += score
             else:
-                if group == 2:
-                    group2_score = group2_score + score
+                group2_score += score
             # del clients[c]
             # close the socket of the team as it is not needed anymore
 
@@ -247,17 +247,16 @@ def mainLooper():
 
         winning_group_decleration = f'Game over! \nGroup 1 typed in {group1_score} characters. Group 2 typed in {group2_score} characters.'
 
-        if(group1_score > group2_score):
-            winning_group_decleration = winning_group_decleration + "Group 1 wins!\n\nCongratulations to the winners:\n==\n"
+        if group1_score > group2_score:
+            winning_group_decleration += "Group 1 wins!\n\nCongratulations to the winners:\n==\n"
             for name in group1:
-                winning_group_decleration = winning_group_decleration + f'{name}\n'
+                winning_group_decleration += f'{name}\n'
+        elif group2_score > group1_score:
+            winning_group_decleration += "Group 2 wins!\n\nCongratulations to the winners:\n==\n"
+            for name in group2:
+                winning_group_decleration += f'{name}\n'
         else:
-            if(group2_score > group1_score):
-                winning_group_decleration = winning_group_decleration + "Group 2 wins!\n\nCongratulations to the winners:\n==\n"
-                for name in group2:
-                    winning_group_decleration = winning_group_decleration + f'{name}\n'
-            else:
-                winning_group_decleration = winning_group_decleration + "The game is a draw. No one wins..\n\nCongratulations to everyone!!"
+            winning_group_decleration += "The game is a draw. No one wins..\n\nCongratulations to everyone!!"
 
         print(f'{bcolors.OKGREEN}{winning_group_decleration}\n\n')
 
@@ -310,8 +309,10 @@ def send_offers_for_10_sec():
 
 
 def main():
+    # our port
     offer_list.append(('172.1.0.123', 13117))
-    offer_list.append(('172.1.0.122', 13117))
+    # our teammate port
+    offer_list.append(('172.1.0.133', 13117))
 
     mainLooper()
 
