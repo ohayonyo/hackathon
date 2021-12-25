@@ -115,7 +115,7 @@ def handle(client):
         game_announcement_string = game_announcement_string + f'{name}\n'
     game_announcement_string = game_announcement_string + "\nStart pressing keys on your keyboard as fast as you can!!"
     client.send(game_announcement_string.encode('ascii'))
-    time.sleep(10)
+    time.sleep(100)
 
     print(f'{bcolors.OKGREEN}GAME STARTED!')
 
