@@ -20,7 +20,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 #ip = scapy.get_if_addr('eth1')
-ip = 'localhost'
+ip = '127.0.0.1'
 UDP_port = 13117
 COOKIE = 0xabcddcba
 MESSAGE_TYPE = 0x2
@@ -34,7 +34,7 @@ def rec_offer():
     # Receiving a udp packet
 
     sock_UDP = socket.socket(socket.AF_INET,socket.SOCK_DGRAM) #SOCK_DGRAM is for UDP
-    sock_UDP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    sock_UDP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 2)
     sock_UDP.bind((ip, UDP_port))
 
     data = sock_UDP.recvfrom(1024) # buffer size is 1024 bytes

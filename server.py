@@ -31,7 +31,7 @@ length_of_spam_phase = 10
 length_of_game_phase = 10
 
 # Connection Data
-host = 'localhost'
+host = '127.0.0.1'
 # host = scapy.get_if_addr('eth1')
 port = 2123
 port_to_send_udp = 13117
