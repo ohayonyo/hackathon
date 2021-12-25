@@ -295,7 +295,7 @@ def send_offers_for_10_sec():
 
     for i in range(0,length_of_spam_phase):
         for addr in offer_list:
-            datagram = struct.pack('!IbH',0xfeedbeef, 0x2, port)
+            datagram = struct.pack('!IbH',0xabcddcba, 0x2, port)
             # print(f"{bcolors.OKCYAN}\nSending UDP packet to address {addr} with message {datagram}")
             # # print(f"{bcolors.HEADER}UDP target IP: %s \n" % port_to_send_udp)
             # # print(f"{bcolors.HEADER}UDP target port: %s \n" % port_to_send_udp)
