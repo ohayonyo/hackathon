@@ -115,11 +115,21 @@ def handle(client):
         game_announcement_string = game_announcement_string + f'{name}\n'
     game_announcement_string = game_announcement_string + "\nStart pressing keys on your keyboard as fast as you can!!"
     client.send(game_announcement_string.encode('ascii'))
-    time.sleep(100)
+
+    count_another_ten_seconds_thread = threading.Thread(target=count_ten_seconds)
+    count_another_ten_seconds_thread.start()
+    threading.Thread.join(count_another_ten_seconds_thread)
+
+     #start 10 second counter thread
+     # logging.info(f'Starting and creating 10sec counting thread')
 
     print(f'{bcolors.OKGREEN}GAME STARTED!')
 
+
+
     readers = [client]
+
+
 
     while game_time_lock.locked() == False:
         readable, writable, errored = select.select(readers, [], [], 0.5)
