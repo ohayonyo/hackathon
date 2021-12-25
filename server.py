@@ -311,9 +311,9 @@ def send_offers_for_10_sec():
 
 def main():
     # our port
-    offer_list.append(('172.1.0.123', 13117))
+    offer_list.append(('127.0.0.1', 13117))
     # our teammate port
-    offer_list.append(('172.1.0.133', 13117))
+    offer_list.append(('127.0.0.1', 13117))
 
     mainLooper()
 
