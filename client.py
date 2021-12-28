@@ -19,6 +19,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+index=0
 #ip = scapy.get_if_addr('eth1')
 ip = '127.0.0.1'
 UDP_port = 13117
@@ -34,7 +35,7 @@ def rec_offer():
     # Receiving a udp packet
 
     sock_UDP = socket.socket(socket.AF_INET,socket.SOCK_DGRAM) #SOCK_DGRAM is for UDP
-    sock_UDP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 2)
+    sock_UDP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     sock_UDP.bind((ip, UDP_port))
 
     data = sock_UDP.recvfrom(1024) # buffer size is 1024 bytes
@@ -80,34 +81,44 @@ def connec_to_server(port, tip):
 
 
 def game_mode(socket):
-
+    print("Mark0")
     socket.sendall(bytes(TEAM_NAME,'ascii'))
     # sendThread = threading.Thread(target = rec, args =(socket))
     # receiveThread = threading.Thread(target = send, args =(socket))
     read = False
     for i in range(1,20):
         readable, writable, errored = select.select([socket], [], [],0.5)
+        print("size of readable is:"+str(len(readable)))
+        print("readable:\n\n", readable)
         for s in readable:
+            print("Mark1")
             startMsg = socket.recv(1024).decode('ascii')
             print(f'{bcolors.OKGREEN} %s here' % startMsg)
             read = True
+            print("Mark2")
+
         if read :
             break
         time.sleep(0.5)
-
-    readers = [socket]
-
-    while readers:
+    print("Mark3")    
+    index+=1
+    print("socket:", socket)
+    writable = [socket]
+    print("writable:", writable)
+    while writable:
         readable, writable, errored = select.select([socket], [socket], [],0.05)
+        print("index=",index, "writable:\n", writable)
         for w in writable:
+            #print("w:\n\n", w)
             try:
-                w.sendall(bytes(getch(),'UTF-8'))
+                w.sendall(bytes(getch(),'ascii'))
             except:
                 break
+            writable.remove(w)
 
         if readable:
             return
-
+    
 
 def isData():
     return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
