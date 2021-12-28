@@ -110,7 +110,7 @@ def game_mode(socket):
 
 
 def isData():
-        return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
+    return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
 
 

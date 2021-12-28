@@ -116,10 +116,6 @@ def handle(client):
     game_announcement_string = game_announcement_string + "\nStart pressing keys on your keyboard as fast as you can!!"
     client.send(game_announcement_string.encode('ascii'))
 
-    count_another_ten_seconds_thread = threading.Thread(target=count_ten_seconds)
-    count_another_ten_seconds_thread.start()
-    threading.Thread.join(count_another_ten_seconds_thread)
-
      #start 10 second counter thread
      # logging.info(f'Starting and creating 10sec counting thread')
 
