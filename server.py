@@ -1,3 +1,6 @@
+import msvcrt
+
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -19,6 +22,7 @@ import select
 import random
 import scapy.all as scapy
 import logging
+import msvcrt
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s: %(message)s',datefmt='%H:%M:%S', level=logging.DEBUG)
 
@@ -199,8 +203,12 @@ def recieve_tcp_connections():
 def mainLooper():
     # logging.info(f'Entered MainLopper func')
     print(f'{bcolors.HEADER} Server started, listening on IP address {host}')
-    while True:
+    looper = True
+    while looper:
 
+        if msvcrt.kbhit() and msvcrt.getch() == chr(27):
+            lopper = False
+            break
         # start UDP spammer thread
         # logging.info(f'Starting and creating UDP spamming thread')
         udp_offer_thread = threading.Thread(target = send_offers_for_10_sec, args= ())
