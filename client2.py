@@ -90,7 +90,7 @@ def game_mode(socket):
 		readable, writable, errored = select.select([socket], [], [],0.5)
 		for s in readable:
 			startMsg = socket.recv(1024).decode('UTF-8')
-			print(f'{bcolors.OKGREEN} %s here' % startMsg)
+			print(f'{bcolors.OKGREEN} %s' % startMsg)
 			read = True
 
 		if read :
@@ -103,9 +103,7 @@ def game_mode(socket):
 		#print("index=",index, "writable:\n", writable)
 		for w in writable:
 			try:
-				print("Sending the answer...")
 				x=w.sendall(bytes(acquire_digit(),'UTF-8'))
-				#w.sendall(bytes(acquire_digit(),'UTF-8'))	
 				print("Sent !", x)
 			except:
 				break
