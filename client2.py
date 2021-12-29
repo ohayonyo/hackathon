@@ -7,7 +7,7 @@ import asyncio
 import threading
 import time
 import select
-#import scapy.all as scapy
+import scapy.all as scapy
 
 class bcolors:
 	HEADER = '\033[95m'
@@ -21,8 +21,8 @@ class bcolors:
 	UNDERLINE = '\033[4m'
 
 index=0
-#ip = scapy.get_if_addr('eth1')
-ip = '127.0.0.1'
+ip = scapy.get_if_addr('eth1')
+#ip = '127.0.0.1'
 UDP_port = 13117
 COOKIE = 0xabcddcba
 MESSAGE_TYPE = 0x2
@@ -36,6 +36,7 @@ def rec_offer():
 	# Receiving a udp packet
 	sock_UDP = socket.socket(socket.AF_INET,socket.SOCK_DGRAM) #SOCK_DGRAM is for UDP
 	sock_UDP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+	#print(ip)
 	sock_UDP.bind((ip, UDP_port))
 
 	data = sock_UDP.recvfrom(1024) # buffer size is 1024 bytes
@@ -57,7 +58,7 @@ def connec_to_server(port, tip):
 	print("connect to server")
 	sock_TCP = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #SOCK_STREAM is for TCP
 	sock_TCP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-	server_address = ("127.0.0.1", 2123)
+	server_address = ("172.1.0.123", 2123)
 	
 	print( f'{bcolors.HEADER}connecting to %s port %s \n' % server_address)
 	ret = sock_TCP.connect(server_address)
@@ -90,7 +91,7 @@ def game_mode(socket):
 		readable, writable, errored = select.select([socket], [], [],0.5)
 		for s in readable:
 			startMsg = socket.recv(1024).decode('UTF-8')
-			print(f'{bcolors.OKGREEN} %s' % startMsg)
+			print(f'{bcolors.OKGREEN} %s here' % startMsg)
 			read = True
 
 		if read :
@@ -103,7 +104,9 @@ def game_mode(socket):
 		#print("index=",index, "writable:\n", writable)
 		for w in writable:
 			try:
+				print("Sending the answer...")
 				x=w.sendall(bytes(acquire_digit(),'UTF-8'))
+				#w.sendall(bytes(acquire_digit(),'UTF-8'))	
 				print("Sent !", x)
 			except:
 				break

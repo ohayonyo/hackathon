@@ -15,7 +15,7 @@ import time
 import struct
 import select
 import random
-#import scapy.all as scapy
+import scapy.all as scapy
 import logging
 from questions import *
 
@@ -29,10 +29,10 @@ length_of_spam_phase = 10
 length_of_game_phase = 10
 
 # Connection Data
-host = '127.0.0.1'
-# host = scapy.get_if_addr('eth1')
+# host = '127.0.0.1'
+host = scapy.get_if_addr('eth1')
 port = 2123
-port_to_send_udp = 13117
+# port_to_send_udp = 13117
 
 # starting server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -241,21 +241,20 @@ def send_offers_for_10_sec():
 
 	udp_socket_out = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 	udp_socket_out.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+	udp_socket_out.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
 	for i in range(0,length_of_spam_phase):
-		for addr in offer_list:
-			datagram = struct.pack('!IbH',0xabcddcba, 0x2, port)
-			udp_socket_out.sendto(datagram, addr) #'broadcast' instaead of addr?
-			
+		datagram = struct.pack('!IbH',0xabcddcba, 0x2, port)
+		udp_socket_out.sendto(datagram, ('broadcast',13117))	
 		time.sleep(1)
 
 	udp_socket_out.close()
 
 def main():
-	# our port
-	offer_list.append(('127.0.0.1', 13117))
-	# our teammate port
-	offer_list.append(('127.0.0.1', 13117))
+	# # our port
+	offer_list.append(('255.255.255.255', 13117))
+	# # our teammate port
+	# offer_list.append(('127.0.0.1', 13117))
 
 	mainLooper()
 
