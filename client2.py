@@ -34,7 +34,6 @@ def rec_offer():
 	print(f"{bcolors.HEADER}Client started, listening for offer requests... \n")
 
 	# Receiving a udp packet
-
 	sock_UDP = socket.socket(socket.AF_INET,socket.SOCK_DGRAM) #SOCK_DGRAM is for UDP
 	sock_UDP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 	sock_UDP.bind((ip, UDP_port))
@@ -59,13 +58,9 @@ def connec_to_server(port, tip):
 	sock_TCP = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #SOCK_STREAM is for TCP
 	sock_TCP.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 	server_address = ("127.0.0.1", 2123)
-	#sock_TCP.sendall(bytes(str(getch()),'UTF-8'))
-
-	#server_address = (tip, port)
 	
 	print( f'{bcolors.HEADER}connecting to %s port %s \n' % server_address)
 	ret = sock_TCP.connect(server_address)
-	print("\n\n\n\nret=", ret, "\n\n\n\n")
 	if ret == 0:
 		print(f"{bcolors.FAIL}failed to connect to %s %s \n" %server_address)
 		rec_offer()
@@ -89,10 +84,7 @@ def connec_to_server(port, tip):
 
 def game_mode(socket):
 	index=0
-	print("Mark0")
 	socket.sendall(bytes(TEAM_NAME,'UTF-8'))
-	# sendThread = threading.Thread(target = rec, args =(socket))
-	# receiveThread = threading.Thread(target = send, args =(socket))
 	read = False
 	for i in range(1,20):
 		readable, writable, errored = select.select([socket], [], [],0.5)
@@ -106,38 +98,38 @@ def game_mode(socket):
 		time.sleep(0.5)
 	index+=1
 	readers = [socket]
-	print("socket:")
 	while readers:
 		readable, writable, errored = select.select([socket], [socket], [],0.05)
 		#print("index=",index, "writable:\n", writable)
 		for w in writable:
-			print("w:\n\n", w)
 			try:
-				print("in the try")
-				w.sendall(bytes(str(getch()),'UTF-8'))
-				
-				print("sent a packet")
+				print("Sending the answer...")
+				x=w.sendall(bytes(acquire_digit(),'UTF-8'))
+				#w.sendall(bytes(acquire_digit(),'UTF-8'))	
+				print("Sent !", x)
 			except:
-				print("in the except")
 				break
 
 		if readable:
 			return
 		
 		readers.remove(w)
-   
+		print('Finished the game')
 
 # Create a TCP/IP socket
 def getch():
 	pressed=keyboard.record('enter')
-	print(pressed)
 	for i in pressed:
 		for j in range(10):
 			if str(i) == 'KeyboardEvent(' + str(j) + ' up)':
+				print('sent !\n')
 				return j
 			
 	return -1
 
+def acquire_digit():
+	a=input("Enter your answer here:\n")
+	return a[-1]
 
 if __name__ == "__main__":
 	rec_offer()

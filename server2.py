@@ -17,6 +17,7 @@ import select
 import random
 #import scapy.all as scapy
 import logging
+from questions import *
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s: %(message)s',datefmt='%H:%M:%S', level=logging.DEBUG)
 
@@ -43,15 +44,14 @@ port = server.getsockname()[1]
 server.setblocking(False)
 server.listen()
 
-# Lists for clients
-# List of client sockets
-# dictionary of kind Socket: (str, int)
+# Dictionnary of the clients
 # looks like client: (team_name, score)
 clients = {}
 
 # Lists for the groups, each list holds the names of the teams in the groups
 group1 = []
 group2 = []
+
 # List of addresses to which we should send offer messages to
 offer_list = []
 
@@ -65,13 +65,10 @@ def broadcast(message):
 
 # handling messages from clients
 def handle(client):
-	 # Request And Store Nickname
-	# print("sned nameee")
-	# client.send("Sned Mi TEEM name PLZ".encode('UTF-8'))
 
 	# get team name from client
 	readers = [client]
-	team_names=[] # I added this line
+	team_names=[]
 	while readers:
 		readable, writable, errored = select.select(readers, [], [], 0.5)
 		
@@ -85,24 +82,19 @@ def handle(client):
 				
 				if group1 == []:
 					group1.append(team_name)
-					print("Successfully added to group1")
-					
+					print("Successfully added to group1")					
 				elif group2 == []:
 					group2.append(team_name)
 					print("Successfully added to group2")
 
-				# print("Team Name is {}".format(team_name))
 				readers.remove(c)
 
 			except:
-				# print("EXPPPPPPPP TEAM NAME PHASE")
-				c.close()
-				# print('{} Something is wrong with the given team name'.format(team_name).encode('UTF-8'))
+				#c.close()
 				return
 
 	# while not udp_spam_time_lock.locked():
 	#     time.sleep(0.1)
-
 
 	# actual game, this runs seperatly for each client but all at the same time! (different threads)
 	
@@ -119,7 +111,8 @@ def handle(client):
 	game_announcement_string = game_announcement_string + "Group 2: \n== \n"
 	for name in group2:
 		game_announcement_string = game_announcement_string + f'{name}\n'
-	game_announcement_string = game_announcement_string + "\nGive the answer to this question as fast as you can!!\n\n2 + 2 =      ?"
+	
+	game_announcement_string = game_announcement_string + "\nGive the answer to this question as fast as you can!!\n\n" + output
 	client.send(game_announcement_string.encode('UTF-8'))
 
 	 #start 10 second counter thread
@@ -129,28 +122,33 @@ def handle(client):
 
 	readers = [client]
 
-	while game_time_lock.locked() == False:
+	while game_time_lock.locked() == True:
+		print("\nWe are in the while game_time_lock.locked() == False:")
+		#print("readers: ", readers)
 		readable, writable, errored = select.select(readers, [], [], 0.5)
 		print("readable", readable)
+		print("writable", writable)
 		for c in readable:
 			try:
 				print("c is", c)
 				message = c.recv(16)
+				print("received message:", message)
 				if(message == b''):
 					raise RuntimeError("Runtime Error !\nEmpty message")
 				# print(f'{bcolors.OKBLUE}received "%s" \n' % message)
 				# add 1 to the score of the scoring team
-				clients[c]=(clients[c][0],clients[c][1]+1) 
+				result=check_question(message.decode('utf-8'), q_number)
+				clients[c]=(clients[c][0],clients[c][1]+result)
 			except:
 				# index = clients.index(c)
 				# clients.remove(c)
 				# c.close()
-				team_name = team_names[index]
+				#team_name = team_names[index]
 				
-				print("EXPPPPPPPP GAME")
-				team_name = clients[c][0] #!@!@ COMMENTED BY EITAN
-				del clients[c] #COMMENTED BY EITA
-				c.close #COMMENTED BY EITAN
+				print("NOT WORKING PROPERLY")
+				team_name = clients[c][0]
+				del clients[c]
+				c.close
 				print('{} left!'.format(team_name).encode('UTF-8'))
 				team_names.remove(team_name)
 				break
@@ -164,13 +162,11 @@ def handle(client):
 def count_ten_seconds ():
 	print("locking the game_time_lock")
 	game_time_lock.acquire()
-	print("sleeping for 10 seconds")
 	time.sleep(length_of_spam_phase)
 	print("locking the udp_spam_lock")
-	udp_spam_time_lock.acquire()
 	print("unlock the game_time_lock")
+	udp_spam_time_lock.acquire()
 	game_time_lock.release()
-	print("sleeping 10 seconds")
 	time.sleep(length_of_game_phase)
 	print("locking game_time_lock")
 	game_time_lock.acquire()
@@ -187,7 +183,6 @@ def recieve_tcp_connections():
 				if s == server:
 					client, address = s.accept()
 					# print("Connected with {}".format(str(address)))
-					# logging.info(f'Connected with :{address}')
 					#start handling thread for client
 					thread = threading.Thread(target=handle, args=(client,))
 					thread.start()
@@ -206,6 +201,8 @@ def mainLooper():
 	print(f'{bcolors.HEADER} Server started, listening on IP address {host}')
 	looper = True
 	while looper:
+		global output, q_number
+		(output,q_number)=generate_question()
 		# start UDP spammer thread
 		# logging.info(f'Starting and creating UDP spamming thread')
 		udp_offer_thread = threading.Thread(target = send_offers_for_10_sec, args= ())
@@ -218,9 +215,7 @@ def mainLooper():
 		count_ten_seconds_thread.start()
 
 		#accept connection
-		# logging.info(f'Calling recieve_tcp_connections func')
 		recieve_tcp_connections()
-		# logging.info(f'Came back from recieve_tcp_connections func')
 		# print("Ten seconds finished")
 		while not game_time_lock.locked():
 			time.sleep(0.1)
@@ -233,7 +228,7 @@ def mainLooper():
 
 		#close and remove client sockets and team names
 		# logging.info(f'Started closing and removing all client sockets and team names')
-		# print(clients)
+		print(clients)
 
 		# looks like -> teamname: 14
 		teams=[]
@@ -246,20 +241,21 @@ def mainLooper():
 
 
 		#declare the winning group
-		
+		print("scores:", scores)
 		if group1!=[] and group2!=[]:
-			winning_group_declaration = f'Game over! \nTeam 1 typed in {scores[0]} characters. Team 2 typed in {scores[1]} characters.'
-
-			if scores[0] > scores[1]:
-				winning_group_declaration += "Team 1 wins!\n\nCongratulations to the winners:\n==\n"
-				winning_group_declaration += f'{teams[0]}\n'
-			elif scores[1] > scores[0]:
-				winning_group_declaration += "Team 2 wins!\n\nCongratulations to the winners:\n==\n"
-				for name in group2:
-					winning_group_declaration += f'{teams[1]}\n'
-			else:
-				winning_group_declaration += "The game is a draw. No one wins..\n\nCongratulations to everyone!!"
-
+			try:
+				winning_group_declaration = f'Game over! \nTeam 1 typed in {scores[0]} characters. Team 2 typed in {scores[1]} characters.'
+				if scores[0] > scores[1]:
+					winning_group_declaration += "Team 1 wins!\n\nCongratulations to the winners:\n==\n"
+					winning_group_declaration += f'{teams[0]}\n'
+				elif scores[1] > scores[0]:
+					winning_group_declaration += "Team 2 wins!\n\nCongratulations to the winners:\n==\n"
+					for name in group2:
+						winning_group_declaration += f'{teams[1]}\n'
+				else:
+					winning_group_declaration += "The game is a draw. No one wins..\n\nCongratulations to everyone!!"
+			except:
+				winning_group_declaration= "Nobody won :("
 			print(f'{bcolors.OKGREEN}{winning_group_declaration}\n\n')
 
 			# print out the name of the best team and their score
@@ -271,10 +267,20 @@ def mainLooper():
 					# best_team_name = team
 
 			# winning_team_declaration = winning_group_declaration + '\n\n' + f'The team that typed the most characters, and recieved the largest score is:\n==\n{best_team_name}\nWith the score of {best_team_score}\n\n'
+			print("clients:", clients)
+			print("We have "+ str(len(clients)) + "clients.")
+			try:
+				for c in clients:
+					print("name:", clients[c][1])
+					c.send(bytes(f'{bcolors.OKCYAN}{winning_group_declaration}','UTF-8'))
+					print('sent')
+					clients[c]=(clients[c][0],0)
+					print('reset')
+					c.close()
 			
-			for c in clients:
-				c.send(bytes(f'{bcolors.OKCYAN}{winning_group_declaration}','UTF-8'))
-				c.close()
+			except:
+				print('in the except')
+				pass
 
 			clients.clear()
 #			group1.clear()
@@ -298,12 +304,8 @@ def send_offers_for_10_sec():
 	for i in range(0,length_of_spam_phase):
 		for addr in offer_list:
 			datagram = struct.pack('!IbH',0xabcddcba, 0x2, port)
-			# print(f"{bcolors.OKCYAN}\nSending UDP packet to address {addr} with message {datagram}")
-			# # print(f"{bcolors.HEADER}UDP target IP: %s \n" % port_to_send_udp)
-			# # print(f"{bcolors.HEADER}UDP target port: %s \n" % port_to_send_udp)
-			# # print(f"{bcolors.OKCYAN}message: %s \n" % datagram)
 			#udp_socket_out.send(datagram)
-			udp_socket_out.sendto(datagram, addr) #broadcast instaead of addr?
+			udp_socket_out.sendto(datagram, addr) #'broadcast' instaead of addr?
 			#udp_socket_out.sendto(datagram, '255.255.255.255') #broadcast instaead of addr?
 			# sock_UDP.shutdown(socket.SHUT_RDWR)
 		time.sleep(1)
