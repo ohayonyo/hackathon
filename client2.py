@@ -28,7 +28,7 @@ COOKIE = 0xabcddcba
 MESSAGE_TYPE = 0x2
 STRUCT_FORMAT = '!IbH'
 CTRL_C = '\x03'
-TEAM_NAME = 'Rabbin Hood'
+TEAM_NAME = 'Rabbin Hood 2.0'
 
 def rec_offer():
 	print(f"{bcolors.HEADER}Client started, listening for offer requests... \n")
